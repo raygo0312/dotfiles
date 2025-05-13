@@ -51,6 +51,7 @@ zstyle ':completion:*:default' menu select=2
 ####################################
 export LANG=ja_JP.UTF-8
 export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+export PATH="$HOME/.deno/env:$PATH"
 
 ####################################
 # 📦 エイリアス

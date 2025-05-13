@@ -5,13 +5,13 @@ set -e
 echo "🛠️ dotfiles セットアップ開始っ！"
 
 DOTFILES_DIR="$HOME/dotfiles"
+ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
 EXCLUDE_LIST=(".git")
 
 # === 0. Oh My Zsh のインストール ===
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
   echo "💡 Oh My Zsh が見つからないのでインストールするよ〜！"
 
-  # curl でも wget でもOK（どっちか使える方で）
   if command -v curl >/dev/null 2>&1; then
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
   elif command -v wget >/dev/null 2>&1; then
@@ -26,14 +26,13 @@ else
   echo "✅ Oh My Zsh はすでに入ってるみたい！"
 fi
 
-# === 1. dotfiles内の . から始まるファイルをリンク（.git除く） ===
-for file in $DOTFILES_DIR/.*; do
+# === 1. dotfiles 内の dotfile をホームにリンク（.git など除く） ===
+echo "🔗 dotfiles をリンク中..."
+
+for file in "$DOTFILES_DIR"/.*; do
   filename="$(basename "$file")"
 
-  # 除外対象（ドットだけ、ドットドット、.git）をスキップ
-  if [[ "$filename" == "." || "$filename" == ".." || "$filename" == ".git" ]]; then
-    continue
-  fi
+  [[ "$filename" == "." || "$filename" == ".." || "$filename" == ".git" ]] && continue
 
   src="$file"
   dest="$HOME/$filename"
@@ -47,10 +46,8 @@ for file in $DOTFILES_DIR/.*; do
   echo "✅ $dest → $src"
 done
 
-# === 2. Oh My Zsh プラグインのインストール ===
-echo "🔌 プラグインをインストール中..."
-
-ZSH_CUSTOM=${ZSH_CUSTOM:-~/.oh-my-zsh/custom}
+# === 2. プラグインのインストール ===
+echo "🔌 Oh My Zsh プラグインをインストール中..."
 
 declare -A plugins=(
   [zsh-autosuggestions]="https://github.com/zsh-users/zsh-autosuggestions"
@@ -62,11 +59,31 @@ for plugin in "${!plugins[@]}"; do
   url="${plugins[$plugin]}"
 
   if [ ! -d "$path" ]; then
-    echo "📦 Installing $plugin ..."
+    echo "📦 Installing plugin: $plugin ..."
     git clone "$url" "$path"
     echo "✅ $plugin installed"
   else
     echo "✅ $plugin already installed"
+  fi
+done
+
+# === 3. テーマのインストール（Powerlevel10k） ===
+echo "🎨 Powerlevel10k テーマをインストール中..."
+
+declare -A themes=(
+  [powerlevel10k]="https://github.com/romkatv/powerlevel10k.git"
+)
+
+for theme in "${!themes[@]}"; do
+  path="$ZSH_CUSTOM/themes/$theme"
+  url="${themes[$theme]}"
+
+  if [ ! -d "$path" ]; then
+    echo "🎨 Installing theme: $theme ..."
+    git clone --depth=1 "$url" "$path"
+    echo "✅ $theme installed"
+  else
+    echo "✅ $theme already installed"
   fi
 done
 
